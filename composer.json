@@ -1,0 +1,25 @@
+{
+    "name": "schwaen/doctrine-dbal-extensions",
+    "description": "extensions for the doctrine dbal project",
+    "version": "1.0.0",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {"name": "Sven Muhle", "email": "s.muhle@plajo.de"}
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "doctrine/dbal": "2.5.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "4.8.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Schwaen\\Doctrine\\Dbal\\": "src/"
+        },
+        "exclude-from-classmap": [
+            "tests/"
+        ]
+    }
+}
