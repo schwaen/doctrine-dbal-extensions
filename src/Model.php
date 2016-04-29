@@ -193,6 +193,36 @@ class Model
     }
 
     /**
+     * copy some records and maybe change some values
+     * @param array $filters
+     * @param string $limit
+     * @param array $order_by
+     * @param array $changes
+     * @return array the result of each $this->create()
+     */
+    public function copy(array $filters = [], $limit = null, array $order_by = [], array $changes = [])
+    {
+        $return = [];
+        //read
+        $data = $this->read($this->getColumnNames(), $filters, $limit, $order_by, false);
+        foreach ($data as $row) {
+            foreach ($row as $column_name => $value) {
+                $column = $this->getColumn($column_name);
+                //changes
+                if (isset($changes[$column_name])) {
+                    $row[$column_name] = $changes[$column_name];
+                }
+                //remove autoincrements
+                if ($column->getAutoincrement()) {
+                    unset($row[$column_name]);
+                }
+            }
+            $return[] = $this->create($row);
+        }
+        return $return;
+    }
+
+    /**
      * Builds the WHERE clause from $filter
      * @param QueryBuilder $qb
      * @param array $filters should be an array with arrays wich contains 3 datas
@@ -206,34 +236,33 @@ class Model
      */
     protected function buildWhere(QueryBuilder $qb, array $filters = [])
     {
-        if (empty($filters)) {
-            return;
-        }
-        $expr = $qb->expr()->andX();
-        foreach ($filters as $f) {
-            $column = $f[0];
-            $expr_type = $f[1];
-            $value = isset($f[2]) ? $f[2] : null;
-            $type = \PDO::PARAM_STR;
-            if ($this->getColumn($column) === null) {
-                throw Schema\SchemaException::columnDoesNotExist($column, $this->table_name);
-            }
-            if (!in_array($expr_type, $this->getExpressionTypes())) {
-                throw new \Exception($expr_type.' is not a valid expr_type');
-            }
-            if (in_array($expr_type, ['in', 'notIn']) && is_array($value)) {
-                switch ($this->getColumn($column)->getType()->getName()) {
-                    case 'integer':
-                        $type = \Doctrine\DBAL\Connection::PARAM_INT_ARRAY;
-                        break;
-                    case 'string':
-                        $type = \Doctrine\DBAL\Connection::PARAM_STR_ARRAY;
-                        break;
+        if (!empty($filters)) {
+            $expr = $qb->expr()->andX();
+            foreach ($filters as $f) {
+                $column = $f[0];
+                $expr_type = $f[1];
+                $value = isset($f[2]) ? $f[2] : null;
+                $type = \PDO::PARAM_STR;
+                if ($this->getColumn($column) === null) {
+                    throw Schema\SchemaException::columnDoesNotExist($column, $this->table_name);
                 }
+                if (!in_array($expr_type, $this->getExpressionTypes())) {
+                    throw new \Exception($expr_type.' is not a valid expr_type');
+                }
+                if (in_array($expr_type, ['in', 'notIn']) && is_array($value)) {
+                    switch ($this->getColumn($column)->getType()->getName()) {
+                        case 'integer':
+                            $type = \Doctrine\DBAL\Connection::PARAM_INT_ARRAY;
+                            break;
+                        case 'string':
+                            $type = \Doctrine\DBAL\Connection::PARAM_STR_ARRAY;
+                            break;
+                    }
+                }
+                $expr->add($qb->expr()->$expr_type($this->conn->quoteIdentifier($column), $qb->createNamedParameter($value, $type)));
             }
-            $expr->add($qb->expr()->$expr_type($this->conn->quoteIdentifier($column), $qb->createNamedParameter($value, $type)));
+            $qb->where($expr);
         }
-        $qb->where($expr);
         return $this;
     }
 
