@@ -9,10 +9,11 @@ class Connection extends \Doctrine\DBAL\Connection
     /**
      * Return a generic Model by $table_name
      * @param string $table_name
+     * @param string $model_class_name
      * @return \Schwaen\Doctrine\Dbal\Model
      */
-    public function getModel($table_name)
+    public function getModel($table_name, $model_class_name = '\Schwaen\Doctrine\Dbal\Model')
     {
-        return new Model($table_name, $this);
+        return new $model_class_name($table_name, $this);
     }
 }
