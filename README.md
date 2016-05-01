@@ -37,7 +37,19 @@ Supports
 
 Documentation
 ------------
-ToDo: write Documentation
+**Getting the model object**
+```php
+$config = new \Doctrine\DBAL\Configuration();
+$connectionParams = array(
+    // other params... like the access
+    'wrapperClass' => '\Schwaen\Doctrine\Dbal\Connection',
+);
+$conn = \Doctrine\DBAL\DriverManager::getConnection($connectionParams, $config);
+//variant #1 (need the wrapperClass)
+$model1 = $conn->getModel('table_name');
+//variant #2 (no need of the wrapperClass)
+$model2 = new \Schwaen\Doctrine\Dbal\Model('table_name', $conn);
+```
 
 License
 -------
