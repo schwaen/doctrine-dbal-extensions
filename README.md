@@ -2,6 +2,7 @@
 
 # README
 ------------
+[![Build Status](https://travis-ci.org/schwaen/doctrine-dbal-extensions.svg?branch=master)](https://travis-ci.org/schwaen/doctrine-dbal-extensions)
 
 What is doctrine-dbal-extensions?
 ------------
