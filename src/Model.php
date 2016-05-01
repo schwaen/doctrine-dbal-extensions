@@ -89,7 +89,7 @@ class Model
      */
     protected function getColumn($column_name)
     {
-        return isset($this->columns[$column_name]) ? $return = $this->columns[$column_name] : null;
+        return isset($this->columns[$column_name]) ? $this->columns[$column_name] : null;
     }
 
     /**
