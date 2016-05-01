@@ -2,7 +2,7 @@
 
 # README
 ------------
-[![Build Status](https://travis-ci.org/schwaen/doctrine-dbal-extensions.svg?branch=master)](https://travis-ci.org/schwaen/doctrine-dbal-extensions)
+[![Build Status](https://travis-ci.org/schwaen/doctrine-dbal-extensions.svg?branch=master)](https://travis-ci.org/schwaen/doctrine-dbal-extensions)[![Latest Stable Version](https://poser.pugx.org/schwaen/doctrine-dbal-extensions/v/stable)](https://packagist.org/packages/schwaen/doctrine-dbal-extensions) [![Total Downloads](https://poser.pugx.org/schwaen/doctrine-dbal-extensions/downloads)](https://packagist.org/packages/schwaen/doctrine-dbal-extensions) [![Latest Unstable Version](https://poser.pugx.org/schwaen/doctrine-dbal-extensions/v/unstable)](https://packagist.org/packages/schwaen/doctrine-dbal-extensions) [![License](https://poser.pugx.org/schwaen/doctrine-dbal-extensions/license)](https://packagist.org/packages/schwaen/doctrine-dbal-extensions)
 
 What is doctrine-dbal-extensions?
 ------------
