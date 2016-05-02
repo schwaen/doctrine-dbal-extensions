@@ -247,7 +247,7 @@ class Model
                     throw Schema\SchemaException::columnDoesNotExist($column, $this->table_name);
                 }
                 if (!in_array($expr_type, $this->getExpressionTypes())) {
-                    throw new \Exception($expr_type.' is not a valid expr_type');
+                    throw QueryBuilderException::expressionTypeDoesNotExist($expr_type);
                 }
                 if (in_array($expr_type, ['in', 'notIn']) && is_array($value)) {
                     switch ($this->getColumn($column)->getType()->getName()) {
@@ -304,11 +304,13 @@ class Model
             if (is_string($order)) {
                 $column = $order;
             } elseif (is_array($order) && count($order) === 2) {
-                $column = $order[0];
-                $direction = $order[1];
+                list ($column, $direction) = $order;
             }
             if ($column === null || $this->getColumn($column) === null) {
                 throw Schema\SchemaException::columnDoesNotExist($column, $this->table_name);
+            }
+            if (!in_array($direction, ['ASC', 'DESC'])) {
+                throw QueryBuilderException::orderByDirectionDoesNotExist($direction);
             }
             $qb->addOrderBy($this->conn->quoteIdentifier($column), $direction);
         }
