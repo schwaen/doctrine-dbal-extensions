@@ -304,7 +304,7 @@ class Model
             if (is_string($order)) {
                 $column = $order;
             } elseif (is_array($order) && count($order) === 2) {
-                list ($column, $direction) = $order;
+                list($column, $direction) = $order;
             }
             if ($column === null || $this->getColumn($column) === null) {
                 throw Schema\SchemaException::columnDoesNotExist($column, $this->table_name);
