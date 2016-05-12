@@ -1,9 +1,14 @@
 <?php
 namespace Schwaen\Doctrine\Dbal;
 
+/**
+ * QueryBuilderException
+ */
 class QueryBuilderException extends \Exception
 {
     /**
+     * Exception if the ORDER BY direction does not exist
+     *
      * @param string $direction
      * @return \Schwaen\Doctrine\Dbal\QueryBuilderException
      */
@@ -13,6 +18,8 @@ class QueryBuilderException extends \Exception
     }
 
     /**
+     * Exception if the ORDER BY direction does not exist
+     *
      * @param string $expr_type
      * @return \Schwaen\Doctrine\Dbal\QueryBuilderException
      */
