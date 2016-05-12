@@ -28,6 +28,12 @@ class Model
     protected $table_name = '';
 
     /**
+     * Quoted Table-Name
+     * @var string
+     */
+    protected $quoted_table_name = '';
+
+    /**
      * Array with the Columns
      * @var \Doctrine\DBAL\Schema\Column[]
      */
@@ -52,8 +58,9 @@ class Model
      */
     public function __construct($table_name, \Doctrine\DBAL\Connection $conn)
     {
-        $this->table_name = $table_name;
         $this->conn = $conn;
+        $this->table_name = $table_name;
+        $this->quoted_table_name = $this->conn->quoteIdentifier($this->table_name);
         $this->sm = $this->conn->getSchemaManager();
         if (!$this->sm->tablesExist([$table_name])) {
             throw Schema\SchemaException::tableDoesNotExist($table_name);
@@ -100,7 +107,7 @@ class Model
     public function create(array $data)
     {
         $return = false;
-        $qb = $this->conn->createQueryBuilder()->insert($this->conn->quoteIdentifier($this->table_name));
+        $qb = $this->conn->createQueryBuilder()->insert($this->quoted_table_name);
         foreach ($data as $column => $value) {
             if ($this->getColumn($column) === null) {
                 throw Schema\SchemaException::columnDoesNotExist($column, $this->table_name);
@@ -131,12 +138,17 @@ class Model
             $columns = $this->getColumnNames();
         }
         foreach ($columns as $column) {
-            if ($this->getColumn($column) === null) {
-                throw Schema\SchemaException::columnDoesNotExist($column, $this->table_name);
+            $column_name = (string) is_array($column) ? array_pop($column) : $column;
+            if ($this->getColumn($column_name) === null) {
+                throw Schema\SchemaException::columnDoesNotExist($column_name, $this->table_name);
             }
-            $qb->addSelect($this->conn->quoteIdentifier($column));
+            $column_expr = $this->conn->quoteIdentifier($column_name);
+            if (is_array($column)) {
+                //@todo handle column expression like SUM, AVG, COUNT, ...
+            }
+            $qb->addSelect($column_expr);
         }
-        $qb->from($this->conn->quoteIdentifier($this->table_name));
+        $qb->from($this->quoted_table_name);
         $this
             ->buildWhere($qb, $filters)
             ->buildOrderBy($qb, $order_by)
@@ -147,14 +159,7 @@ class Model
         if ($fetch_with_php_types) {
             foreach ($return as $index => $row) {
                 foreach ($row as $column => $value) {
-                    switch ($this->column_types[$column]) {
-                        case 'integer':
-                            $return[$index][$column] = (int) $value;
-                            break;
-                        case 'decimal':
-                            $return[$index][$column] = (float) $value;
-                            break;
-                    }
+                    $return[$index][$column] = $this->conn->convertToPHPValue($value, $this->column_types[$column]);
                 }
             }
         }
@@ -169,7 +174,7 @@ class Model
      */
     public function update(array $data, array $filters = [])
     {
-        $qb = $this->conn->createQueryBuilder()->update($this->conn->quoteIdentifier($this->table_name));
+        $qb = $this->conn->createQueryBuilder()->update($this->quoted_table_name);
         foreach ($data as $column => $value) {
             if ($this->getColumn($column) === null) {
                 throw Schema\SchemaException::columnDoesNotExist($column, $this->table_name);
@@ -187,7 +192,7 @@ class Model
      */
     public function delete(array $filters = [])
     {
-        $qb = $this->conn->createQueryBuilder()->delete($this->conn->quoteIdentifier($this->table_name));
+        $qb = $this->conn->createQueryBuilder()->delete($this->quoted_table_name);
         $this->buildWhere($qb, $filters);
         return $qb->execute();
     }
