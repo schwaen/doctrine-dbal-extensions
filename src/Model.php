@@ -52,6 +52,24 @@ class Model
     protected $has_autoincrement = null;
 
     /**
+     * Original return type for the read-method
+     * @var string
+     */
+    const READ_RETURN_ORIGINAL = 'original';
+
+    /**
+     * Simple return type for the read-method
+     * @var string
+     */
+    const READ_RETURN_SIMPLE = 'simple';
+
+    /**
+     * Complex return type for the read-method
+     * @var string
+     */
+    const READ_RETURN_COMPLEX = 'complex';
+
+    /**
      * constructor
      * @param string $table_name
      * @param Connection $conn
@@ -127,10 +145,10 @@ class Model
      * @param array $filters
      * @param string $limit
      * @param array $order_by
-     * @param bool $fetch_with_php_types
+     * @param string $return_type
      * @return array:
      */
-    public function read(array $columns = [], array $filters = [], $limit = null, array $order_by = [], $fetch_with_php_types = true)
+    public function read(array $columns = [], array $filters = [], $limit = null, array $order_by = [], $return_type = self::READ_RETURN_COMPLEX)
     {
         $return = [];
         $qb = $this->conn->createQueryBuilder();
@@ -156,9 +174,12 @@ class Model
         ;
         $res = $qb->execute();
         $return = $res->fetchAll(\PDO::FETCH_ASSOC);
-        if ($fetch_with_php_types) {
+        if (in_array($return_type, [self::READ_RETURN_SIMPLE, self::READ_RETURN_COMPLEX])) {
             foreach ($return as $index => $row) {
                 foreach ($row as $column => $value) {
+                    if ($return_type === self::READ_RETURN_SIMPLE && !$this->isSimpleType($column)) {
+                        continue;
+                    }
                     $return[$index][$column] = $this->conn->convertToPHPValue($value, $this->column_types[$column]);
                 }
             }
@@ -255,7 +276,7 @@ class Model
                     throw QueryBuilderException::expressionTypeDoesNotExist($expr_type);
                 }
                 if (in_array($expr_type, ['in', 'notIn']) && is_array($value)) {
-                    switch ($this->getColumn($column)->getType()->getName()) {
+                    switch ($this->column_types[$column]) {
                         case 'integer':
                             $type = \Doctrine\DBAL\Connection::PARAM_INT_ARRAY;
                             break;
@@ -347,5 +368,15 @@ class Model
     public function getColumnNames()
     {
         return array_keys($this->columns);
+    }
+
+    /**
+     * return true if the column type of $column_name is a simple type like string, integer, ...
+     * @param string $column_name
+     * @return boolean
+     */
+    public function isSimpleType($column_name)
+    {
+        return in_array($this->column_types[$column_name], ['string', 'integer']);
     }
 }
