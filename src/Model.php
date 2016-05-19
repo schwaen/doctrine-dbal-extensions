@@ -151,18 +151,26 @@ class Model
     public function read(array $columns = [], array $filters = [], array $limit = [], array $order_by = [], $return_type = self::READ_RETURN_COMPLEX)
     {
         $return = [];
+        $alias_mapping = [];
         $qb = $this->conn->createQueryBuilder();
         if (empty($columns)) {
             $columns = $this->getColumnNames();
         }
         foreach ($columns as $column) {
-            $column_name = (string) is_array($column) ? array_pop($column) : $column;
+            $column_name = null;
+            $alias = null;
+            if (is_string($column)) {
+                $column_name = $alias = $column;
+            } elseif (is_array($column)) {
+                list($column_name, $alias) = $column;
+            }
+            $alias_mapping[$alias] = $column_name;
             if ($this->getColumn($column_name) === null) {
                 throw Schema\SchemaException::columnDoesNotExist($column_name, $this->table_name);
             }
             $column_expr = $this->conn->quoteIdentifier($column_name);
-            if (is_array($column)) {
-                //@todo handle column expression like SUM, AVG, COUNT, ...
+            if ($column_name !== $alias) {
+                $column_expr .= ' AS '.$this->conn->quoteIdentifier($alias);
             }
             $qb->addSelect($column_expr);
         }
@@ -177,10 +185,10 @@ class Model
         if (in_array($return_type, [self::READ_RETURN_SIMPLE, self::READ_RETURN_COMPLEX])) {
             foreach ($return as $index => $row) {
                 foreach ($row as $column => $value) {
-                    if ($return_type === self::READ_RETURN_SIMPLE && !$this->isSimpleType($column)) {
+                    if ($return_type === self::READ_RETURN_SIMPLE && !$this->isSimpleType($alias_mapping[$column])) {
                         continue;
                     }
-                    $return[$index][$column] = $this->conn->convertToPHPValue($value, $this->column_types[$column]);
+                    $return[$index][$column] = $this->conn->convertToPHPValue($value, $this->column_types[$alias_mapping[$column]]);
                 }
             }
         }
