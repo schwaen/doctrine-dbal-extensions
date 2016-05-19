@@ -143,12 +143,12 @@ class Model
      * read $columns from $table_name
      * @param array $columns
      * @param array $filters
-     * @param string $limit
+     * @param array $limit
      * @param array $order_by
      * @param string $return_type
      * @return array:
      */
-    public function read(array $columns = [], array $filters = [], $limit = null, array $order_by = [], $return_type = self::READ_RETURN_COMPLEX)
+    public function read(array $columns = [], array $filters = [], array $limit = [], array $order_by = [], $return_type = self::READ_RETURN_COMPLEX)
     {
         $return = [];
         $qb = $this->conn->createQueryBuilder();
@@ -221,12 +221,12 @@ class Model
     /**
      * copy some records and maybe change some values
      * @param array $filters
-     * @param string $limit
+     * @param array $limit
      * @param array $order_by
      * @param array $changes
      * @return array the result of each $this->create()
      */
-    public function copy(array $filters = [], $limit = null, array $order_by = [], array $changes = [])
+    public function copy(array $filters = [], array $limit = [], array $order_by = [], array $changes = [])
     {
         $return = [];
         //read
@@ -295,23 +295,19 @@ class Model
     /**
      * Build up dynamilcy the LIMIT part
      * @param QueryBuilder $qb
-     * @param mixed $limit
+     * @param array $limit
      * @return self
      */
-    protected function buildLimit(QueryBuilder $qb, $limit = null)
+    protected function buildLimit(QueryBuilder $qb, array $limit = [])
     {
-        if (is_int($limit) || is_numeric($limit)) {
-            $qb->setMaxResults((int) $limit);
-        } elseif (is_array($limit)) {
-            switch (count($limit)) {
-                case 2:
-                    $qb->setFirstResult((int) $limit[0]);
-                    $qb->setMaxResults((int) $limit[1]);
-                    break;
-                case 1:
-                    $qb->setMaxResults((int) $limit[0]);
-                    break;
-            }
+        switch (count($limit)) {
+            case 2:
+                $qb->setFirstResult((int) $limit[0]);
+                $qb->setMaxResults((int) $limit[1]);
+                break;
+            case 1:
+                $qb->setMaxResults((int) $limit[0]);
+                break;
         }
         return $this;
     }
