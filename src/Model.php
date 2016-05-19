@@ -159,17 +159,34 @@ class Model
         foreach ($columns as $column) {
             $column_name = null;
             $alias = null;
+            $expr = [];
             if (is_string($column)) {
                 $column_name = $alias = $column;
+                if (strpos($alias, ':') !== false) {
+                    $alias = explode(':', $alias);
+                    $alias = array_pop($alias);
+                }
             } elseif (is_array($column)) {
                 list($column_name, $alias) = $column;
+            }
+            if (strpos($column_name, ':') !== false) {
+                $expr = explode(':', $column_name);
+                $column_name = array_pop($expr);
             }
             $alias_mapping[$alias] = $column_name;
             if ($this->getColumn($column_name) === null) {
                 throw Schema\SchemaException::columnDoesNotExist($column_name, $this->table_name);
             }
             $column_expr = $this->conn->quoteIdentifier($column_name);
-            if ($column_name !== $alias) {
+            $expr = array_reverse($expr);
+            foreach ($expr as $ex) {
+                if (in_array($ex, ['max', 'min', 'avg', 'count', 'sum', 'lower', 'upper'])) {
+                    $column_expr = call_user_func([$this->conn->getDatabasePlatform(), 'get'.ucfirst($ex).'Expression'], $column_expr);
+                } else {
+                    throw QueryBuilderException::expressionTypeDoesNotExist($ex);
+                }
+            }
+            if ($column_name !== $alias || !empty($expr)) {
                 $column_expr .= ' AS '.$this->conn->quoteIdentifier($alias);
             }
             $qb->addSelect($column_expr);
