@@ -12,7 +12,7 @@ class Connection extends \Doctrine\DBAL\Connection
      * @param string $model_class_name
      * @return \Schwaen\Doctrine\Dbal\Model
      */
-    public function getModel($table_name, $model_class_name = '\Schwaen\Doctrine\Dbal\Model')
+    public function getModel($table_name, $model_class_name = Model::class)
     {
         return new $model_class_name($table_name, $this);
     }
