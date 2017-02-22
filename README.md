@@ -51,6 +51,8 @@ $model1 = $conn->getModel('table_name');
 $model2 = new \Schwaen\Doctrine\Dbal\Model('table_name', $conn);
 ```
 
+**Working with the model object**
+
 License
 -------
 This library is available under the [MIT license](LICENSE).
