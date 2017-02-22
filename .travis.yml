@@ -2,7 +2,6 @@ language: php
 
 sudo: false
 install:
-  - composer global require fabpot/php-cs-fixer
   - composer install
 script:
   - vendor/bin/phpunit
